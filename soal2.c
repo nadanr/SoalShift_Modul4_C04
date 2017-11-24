@@ -96,11 +96,15 @@ static int xmp_read(const char *path, char *buf, size_t size, off_t offset,
 			system("zenity --error --text=\"Terjadi Kesalahan! File berisi konten berbahaya.\n\"");
 			return -errno;
 			
-			if ((chdir("/home/nadanr/Documents/rahasia/")) < 0)//jika direktori rahasia tidak ada
-				{
-					mkdir("/home/nadanr/Documents/rahasia/",0777);
-				}
+			char folderRhs[200];
+			sprintf(folderRhs, "%s/rahasia", dirpath);
 			
+			if ((chdir(folderRhs) < 0)//jika direktori rahasia tidak ada
+				{
+					mkdir(folderRhs,0777);
+				}
+			sprintf(order2,"mv %s.ditandai %s",filepath, folderRhs);
+			system(order2);
 				
 		}
 	else{
