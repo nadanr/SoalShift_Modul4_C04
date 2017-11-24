@@ -61,20 +61,46 @@ static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 static int xmp_read(const char *path, char *buf, size_t size, off_t offset,
 		    struct fuse_file_info *fi)
 {
-  char fpath[1000];
+	char filepath[1000];
+	char tmp[200]
+	int leng=strlen(filepath);
+	int i, k;
 	if(strcmp(path,"/") == 0)
 	{
 		path=dirpath;
-		sprintf(fpath,"%s",path);
+		sprintf(filepath,"%s",path);
 	}
-	else sprintf(fpath, "%s%s",dirpath,path);
+	else sprintf(filepath, "%s%s",dirpath,path);
 	int res = 0;
-  int fd = 0 ;
+	int fd = 0 ;
+	for(i=0; i<leng; i++){
+		if(filepath[i]=='.'){
+			j=0;
+			for(k=i; k<leng; k++){
+				tmp[j]==filepath[k];
+				j++;
+			}
+		}
+	}
 
 	(void) fi;
-	fd = open(fpath, O_RDONLY);
+	fd = open(filepath, O_RDONLY);
 	if (fd == -1)
 		return -errno;
+	else{
+		if(strcmp(tmp, ".doc") == 0 || strcmp(tmp, ".txt")==0 || 
+		strcmp(tmp,".pdf") == 0){
+			char newFile[1000];
+			char oldFile[1000];
+			char order[1000];
+			system("zenity --error --text=\"Terjadi Kesalahan! File berisi konten berbahaya.\n\"");
+			sprintf(oldFile,"%s",filepath);
+			sprintf(newFile,"%s.ditandai",filepath);
+			sprintf(order, "mv %s %s && chmod 000 %s.ditandai", oldFile, newFile, filepath);
+			system(order);
+			return -errno;
+		}
+	}
 
 	res = pread(fd, buf, size, offset);
 	if (res == -1)
