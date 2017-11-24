@@ -1,12 +1,13 @@
 #define FUSE_USE_VERSION 28
-#include <fuse.h>
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <dirent.h>
-#include <errno.h>
-#include <sys/time.h>
+#include<fuse.h>
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+#include<unistd.h>
+#include<fcntl.h>
+#include<dirent.h>
+#include<errno.h>
+#include<sys/time.h>
 
 static const char *dirpath = "/home/nadanr/Documents";
 
@@ -62,9 +63,9 @@ static int xmp_read(const char *path, char *buf, size_t size, off_t offset,
 		    struct fuse_file_info *fi)
 {
 	char filepath[1000];
-	char tmp[200]
+	char tmp[200];
 	int leng=strlen(filepath);
-	int i, k;
+	int i, k, j=0;
 	if(strcmp(path,"/") == 0)
 	{
 		path=dirpath;
@@ -75,39 +76,38 @@ static int xmp_read(const char *path, char *buf, size_t size, off_t offset,
 	int fd = 0 ;
 	for(i=0; i<leng; i++){
 		if(filepath[i]=='.'){
-			j=0;
 			for(k=i; k<leng; k++){
-				tmp[j]==filepath[k];
+				tmp[j]=filepath[k];
 				j++;
 			}
 		}
 	}
-
-	(void) fi;
-	fd = open(filepath, O_RDONLY);
-	if (fd == -1)
-		return -errno;
-	else{
-		if(strcmp(tmp, ".doc") == 0 || strcmp(tmp, ".txt")==0 || 
+	if(strcmp(tmp,".doc")==0||strcmp(tmp, ".txt")==0|| 
 		strcmp(tmp,".pdf") == 0){
 			char newFile[1000];
 			char oldFile[1000];
 			char order[1000];
-			system("zenity --error --text=\"Terjadi Kesalahan! File berisi konten berbahaya.\n\"");
 			sprintf(oldFile,"%s",filepath);
 			sprintf(newFile,"%s.ditandai",filepath);
-			sprintf(order, "mv %s %s && chmod 000 %s.ditandai", oldFile, newFile, filepath);
+			rename(oldFile, newFile);
+			sprintf(order, "chmod 000 %s.ditandai", filepath);
 			system(order);
+			system("zenity --error --text=\"Terjadi Kesalahan! File berisi konten berbahaya.\n\"");
+			
 			return -errno;
 		}
+	else{
+		(void) fi;
+		fd = open(filepath, O_RDONLY);
+		if (fd == -1)
+			return -errno;
+		res = pread(fd, buf, size, offset);
+		if (res == -1)
+			res = -errno;
+
+		close(fd);
+		return res;
 	}
-
-	res = pread(fd, buf, size, offset);
-	if (res == -1)
-		res = -errno;
-
-	close(fd);
-	return res;
 }
 
 
