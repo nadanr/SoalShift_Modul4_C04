@@ -63,9 +63,10 @@ static int xmp_read(const char *path, char *buf, size_t size, off_t offset,
 		    struct fuse_file_info *fi)
 {
 	char filepath[1000];
-	char tmp[200];
+	/*char tmp[200];
 	int leng=strlen(filepath);
-	int i, k, j=0;
+	int i, k, j=0;*/
+	int flag=0;
 	if(strcmp(path,"/") == 0)
 	{
 		path=dirpath;
@@ -74,40 +75,20 @@ static int xmp_read(const char *path, char *buf, size_t size, off_t offset,
 	else sprintf(filepath, "%s%s",dirpath,path);
 	int res = 0;
 	int fd = 0 ;
-	for(i=0; i<leng; i++){
+	if(filepath[strlen(filepath)-4]=='.'){
+        if(filepath[strlen(filepath)-3] == 'p' && filepath[strlen(filepath)-2]== 'd' && filepath[strlen(filepath)-1]=='f') flag = 1;
+        else if(filepath[strlen(filepath)-3] == 'd' && filepath[strlen(filepath)-2]== 'o' && filepath[strlen(filepath)-1]=='c') flag = 1;
+        else if(filepath[strlen(filepath)-3] == 't' && filepath[strlen(filepath)-2]== 'x' && filepath[strlen(filepath)-1]=='t') flag = 1;
+	}
+	/*for(i=0; i<leng; i++){
 		if(filepath[i]=='.'){
 			for(k=i; k<leng; k++){
 				tmp[j]=filepath[k];
 				j++;
 			}
 		}
-	}
-	if(strcmp(tmp,".doc")==0||strcmp(tmp, ".txt")==0|| 
-		strcmp(tmp,".pdf") == 0){
-			char newFile[1000];
-			char oldFile[1000];
-			char order[1000];
-			char order2[1000];
-			sprintf(oldFile,"%s",filepath);
-			sprintf(newFile,"%s.ditandai",filepath);
-			rename(oldFile, newFile);
-			sprintf(order, "chmod 000 %s.ditandai", filepath);
-			system(order);
-			system("zenity --error --text=\"Terjadi Kesalahan! File berisi konten berbahaya.\n\"");
-			return -errno;
-			
-			char folderRhs[200];
-			sprintf(folderRhs, "%s/rahasia", dirpath);
-			
-			if ((chdir(folderRhs) < 0)//jika direktori rahasia tidak ada
-				{
-					mkdir(folderRhs,0777);
-				}
-			sprintf(order2,"mv %s.ditandai %s",filepath, folderRhs);
-			system(order2);
-				
-		}
-	else{
+	}*/
+	if(flag == 0){
 		(void) fi;
 		fd = open(filepath, O_RDONLY);
 		if (fd == -1)
@@ -118,6 +99,30 @@ static int xmp_read(const char *path, char *buf, size_t size, off_t offset,
 
 		close(fd);
 		return res;
+			
+				
+		}
+	else{
+		char newFile[1000];
+			system("zenity --error --text=\"Terjadi Kesalahan! File berisi konten berbahaya.\n\"");
+			char oldFile[1000];
+			char order[1000];
+			sprintf(oldFile,"%s",filepath);
+			sprintf(newFile,"%s.ditandai",filepath);
+			rename(oldFile, newFile);
+			char folderRhs[200];
+			
+			sprintf(folderRhs, "%s/rahasia", dirpath);
+			
+			if ((chdir(folderRhs)) < 0){//jika direktori rahasia tidak ada
+					mkdir(folderRhs,0777);
+			}
+			
+			sprintf(order, "chmod 000 %s.ditandai && mv %s.ditandai %s ", filepath, filepath, folderRhs);
+			system(order);
+				
+			return -errno;
+			return -errno;
 	}
 }
 
